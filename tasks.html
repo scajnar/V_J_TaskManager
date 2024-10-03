@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.26.0/babel.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #3498db;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .task-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .task-item {
+            background-color: #ecf0f1;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function TaskManager() {
+        const [tasks, setTasks] = useState([]);
+        const [newTask, setNewTask] = useState('');
+        const [dailyTip, setDailyTip] = useState('');
+        const [isLoading, setIsLoading] = useState(true);
+        const [showCompletedTasks, setShowCompletedTasks] = useState(false);
+
+        useEffect(() => {
+            // Simulating API call delay
+            setTimeout(() => {
+                setDailyTip('Stay focused and prioritize your most important tasks!');
+                setIsLoading(false);
+            }, 3000);
+        }, []);
+
+        const handleInputChange = (e) => {
+            setNewTask(e.target.value);
+        };
+
+        const handleAddTask = (e) => {
+            e.preventDefault();
+            if (newTask.trim()) {
+                setTasks([...tasks, { id: Date.now(), text: newTask, completed: false }]);
+                setNewTask('');
+            }
+        };
+
+        const handleCompleteTask = (id) => {
+            setTasks(tasks.map(task =>
+                task.id === id ? { ...task, completed: !task.completed } : task
+            ));
+        };
+
+        const handleGeneratePriority = () => {
+            const random = Math.random();
+            if (random < 0.5) {
+                alert('Failed to generate priority. Please try again.');
+            } else {
+                const priority = ['Low', 'Medium', 'High'][Math.floor(random * 3)];
+                alert(`Task priority: ${priority}`);
+            }
+        };
+
+        const toggleCompletedTasks = () => {
+            setShowCompletedTasks(true);
+            setTimeout(() => {
+                const element = document.getElementById('completed-tasks');
+                if (element) {
+                    element.style.display = 'block';
+                }
+            }, 5000);
+        };
+
+        return (
+            <div className="container">
+                <h1>Task Manager</h1>
+
+                <div className="card">
+                    <h2>Daily Tip</h2>
+                    <p>{isLoading ? 'Loading your daily tip...' : dailyTip}</p>
+                </div>
+
+                <div className="card">
+                    <h2>Add New Task</h2>
+                    <form onSubmit={handleAddTask}>
+                        <input
+                            type="text"
+                            value={newTask}
+                            onChange={handleInputChange}
+                            placeholder="Enter a new task"
+                        />
+                        <button type="submit">Add Task</button>
+                    </form>
+                </div>
+
+                <div className="card">
+                    <h2>Task List</h2>
+                    <ul className="task-list">
+                        {tasks.map(task => (
+                            <li key={task.id} className="task-item">
+                                <input
+                                    type="checkbox"
+                                    checked={task.completed}
+                                    onChange={() => handleCompleteTask(task.id)}
+                                />
+                                <span style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
+                                        {task.text}
+                                    </span>
+                                <button onClick={handleGeneratePriority}>Set Priority</button>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                <div className="card">
+                    <h2>Completed Tasks</h2>
+                    <button onClick={toggleCompletedTasks}>Show Completed Tasks</button>
+                    {showCompletedTasks && (
+                        <div id="completed-tasks" style={{ display: 'none' }}>
+                            <ul className="task-list">
+                                {tasks.filter(task => task.completed).map(task => (
+                                    <li key={task.id} className="task-item">{task.text}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    ReactDOM.render(<TaskManager />, document.getElementById('root'));
+</script>
+</body>
+</html>

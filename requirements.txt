@@ -1,0 +1,37 @@
+# Playwright and its dependencies
+playwright==1.35.0
+
+# Test runner
+pytest==7.3.1
+pytest-playwright==0.3.3
+
+# For parallel test execution
+pytest-xdist==3.3.1
+
+# For generating HTML reports
+pytest-html==3.2.0
+
+# For handling environment variables
+python-dotenv==1.0.0
+
+# For data manipulation (if needed for test data management)
+pandas==2.0.2
+
+# For API interactions (if needed for API testing or mocking)
+requests==2.31.0
+
+# For performance testing
+pytest-benchmark==4.0.0
+
+# For faker data generation (useful for creating test data)
+Faker==18.10.1
+
+# For custom reporting or data processing
+Jinja2==3.1.2
+
+# For linting and code quality
+pylint==2.17.4
+black==23.3.0
+
+# For type checking (optional but recommended)
+mypy==1.3.0

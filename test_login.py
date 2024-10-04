@@ -1,15 +1,10 @@
 import logging
-import sys
 import time
-import typing
 from enum import Enum
-from urllib import response
 
 import pytest
-from numpy.core import overrides
-from playwright.async_api import async_playwright
-from playwright.sync_api import Page, expect, Playwright
-from playwright.sync_api._generated import ElementHandle, Locator
+from playwright.sync_api import expect, Playwright
+from playwright.sync_api._generated import Locator
 
 logging.basicConfig(level=logging.INFO)
 
@@ -42,7 +37,6 @@ class BaseElement(Locator):
     def _locator(self, xpath: str, *args, **kwargs):
         return self.locator(f"xpath={xpath}", *args, **kwargs)
 
-    # Playwright does not recognize relative xpaths.
     def locate(self, xpath: str, wait: int = 0, *args, **kwargs):
         time_start = time.time()
         found = False

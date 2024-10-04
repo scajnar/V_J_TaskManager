@@ -102,7 +102,7 @@ class TaskManagerPage(BaseElement):
         self.daily_tip_card = TaskManagerPage.DailyTipCard(
             self.locate(self.card_base_xpath.format(text=self.daily_tip_card_text))
         )
-        self.add_new_task_car = TaskManagerPage.AddNewTaskCard(
+        self.add_new_task_card = TaskManagerPage.AddNewTaskCard(
             self.locate(self.card_base_xpath.format(text=self.add_new_task_card_text))
         )
         self.task_list_card = TaskManagerPage.TaskListCard(
@@ -135,25 +135,31 @@ class TaskManagerPage(BaseElement):
     class TaskListCard(Card):
         def __init__(self, body: Locator):
             super().__init__(body)
-            self.task_list_xpath = ".//ul"
-            self.task_list = None
+            self.task_list_xpath: str = ".//ul"
+            self.task_list = ...
 
         def init_task_list(self) -> BaseElement:
-            self.task_list = self.locate(self.task_list_xpath)
+            self.task_list = TaskManagerPage.TaskListCard.TaskList(
+                self.locate(self.task_list_xpath)
+            )
             return self.task_list
 
         @property
         def is_task_list_initialized(self):
-            return self.task_list
+            return bool(self.task_list)
 
         class TaskList(BaseElement):
             def __init__(self, body: Locator):
                 super().__init__(body)
-                self.task_xpath = ".//li"
-                self.tasks = self.populate_tasks()
+                self.task_xpath: str = ".//li"
+                self.tasks: list[BaseElement] = []
 
-            def populate_tasks(self):
-                self.tasks = self.locate(self.task_xpath)
+            def initialize_tasks(self):
+                tasks: list[Locator] = self.locate(self.task_xpath).all()
+                for task in tasks:
+                    self.tasks.append(
+                        TaskManagerPage.TaskListCard.TaskList.TaskWithCheckbox(task)
+                    )
                 return self.tasks
 
             @property
@@ -163,12 +169,16 @@ class TaskManagerPage(BaseElement):
             class TaskWithCheckbox(BaseElement):
                 def __init__(self, body: Locator):
                     super().__init__(body)
-                    self.task_text_xpath = ".//span"
-                    self.checkbox_xpath = ".//input"
-                    self.button_xpath = ".//button"
+                    self.task_text_xpath: str = ".//span"
+                    self.checkbox_xpath: str = ".//input"
+                    self.button_xpath: str = ".//button"
 
-                    self.checkbox = self.locate(self.checkbox_xpath)
-                    self.button = self.locate(self.button_xpath)
+                    self.checkbox: BaseElement = (
+                        TaskManagerPage.TaskListCard.TaskList.TaskWithCheckbox.Checkbox(
+                            self.locate(self.checkbox_xpath)
+                        )
+                    )
+                    self.button: BaseElement = self.locate(self.button_xpath)
 
                 @property
                 def text(self):
@@ -192,15 +202,10 @@ class TestTaskManager:
     @pytest.fixture(scope="function", autouse=True)
     def before_each_after_each(self, page: Page):
         print("before the test runs")
-        # Go to the starting url before each test.
-        # browser = playwright.chromium.launch()
-        # context = browser.new_context(record_video_dir="./videos/")
-        # page = context.new_page()
         page.goto("https://demo.visionect.com/tasks/index.html")
         assert page, "The page did not load correctly."
         self.task_manager_page = TaskManagerPage(get_current_page(page))
         yield
-
         print("after the test runs")
 
     @pytest.mark.parametrize("tip_timeout", [1000, 2000, 3000, 4000])
@@ -211,3 +216,12 @@ class TestTaskManager:
             f"The daily tip text {Text.STAY_FOCUSED_AND_PRIORITIZE.value} "
             f"did not load within {tip_timeout}ms."
         )
+
+    def test_02_add_new_task(self):
+        self.task_manager_page.add_new_task_card.input_field.fill("New !!Task")
+        time.sleep(2)
+        self.task_manager_page.add_new_task_card.button.click()
+        time.sleep(2)
+        self.task_manager_page.task_list_card.init_task_list()
+        self.task_manager_page.task_list_card.task_list.initialize_tasks()
+        print(self.task_manager_page.task_list_card.task_list.tasks[0].text)

@@ -47,7 +47,9 @@ class BaseElement(Locator):
                 return self._locator(xpath, *args, **kwargs)
             time.sleep(0.1)  # To avoid CPU hogging
         else:
-            raise Exception(f"Element not found: {xpath}")
+            raise TimeoutError(
+                f"Element with xpath: {xpath}\n not found withing timeframe {wait}s "
+            )
 
 
 class Card(BaseElement):

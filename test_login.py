@@ -92,8 +92,7 @@ class TaskManagerPage(BaseElement):
             super().__init__(body)
             self.tip_text_xpath = ".//p"
 
-        # We assign text as a property, so we avoid failing other tests as a
-        # result of the tip text having a typo.
+        # We do not want to initialize the tip_text_elem until we need it.
         @property
         def tip_text_elem(self):
             return self.locate(self.tip_text_xpath)

@@ -203,10 +203,11 @@ class TestTaskManager:
 
         print("after the test runs")
 
-    # @record_screen
-    def test_01_task_manager_text(self, request):
-        time_start = time.time()
-        found = False
+    @pytest.mark.parametrize("tip_timeout", [1000, 2000, 3000, 4000])
+    def test_01_task_manager_text(self, tip_timeout: int):
         expect(self.task_manager_page.daily_tip_card.tip_text_elem).to_have_text(
-            Text.STAY_FOCUSED_AND_PRIORITIZE.value, timeout=1000
+            Text.STAY_FOCUSED_AND_PRIORITIZE.value, timeout=tip_timeout
+        ), (
+            f"The daily tip text {Text.STAY_FOCUSED_AND_PRIORITIZE.value} "
+            f"did not load within {tip_timeout}ms."
         )

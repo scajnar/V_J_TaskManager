@@ -1,12 +1,39 @@
+import inspect
 import logging
 import time
 from enum import Enum
+from functools import wraps
 
 import pytest
 from playwright.sync_api import expect, Playwright
-from playwright.sync_api._generated import Locator
+from playwright.sync_api._generated import Locator, Page
 
 logging.basicConfig(level=logging.INFO)
+
+
+# decorator to calculate duration
+# taken by any function.
+def record_screen(func):
+    # added arguments inside the inner1,
+    # if function takes any arguments,
+    # can be added like this.
+    @wraps(func)
+    def inner1(*args, **kwargs):
+        # storing time before function execution
+        begin = time.time()
+        res = None
+        try:
+            print("in decorator")
+            res = func(*args, **kwargs)
+            print(inspect.stack()[1].function)
+        except Exception as e:
+            print("Error")
+            return res
+        # storing time after function execution
+        end = time.time()
+        print("Total time taken in : ", func.__name__, end - begin)
+
+    return inner1
 
 
 # Defining the text that will be used in the tests to avoid typos.
@@ -70,7 +97,7 @@ class TaskManagerPage(BaseElement):
         self.task_list_card_text = Text.TASK_LIST.value
         self.completed_tasks_card_text = Text.COMPLETED_TASKS.value
 
-        self.card_base_xpath = ".//div/*[contains(text(), '{text}')]/.."
+        self.card_base_xpath = ".//div/*[contains(text(), '{text}')]/parent::div"
 
         self.daily_tip_card = TaskManagerPage.DailyTipCard(
             self.locate(self.card_base_xpath.format(text=self.daily_tip_card_text))
@@ -163,23 +190,23 @@ class TaskManagerPage(BaseElement):
 
 class TestTaskManager:
     @pytest.fixture(scope="function", autouse=True)
-    def before_each_after_each(self, playwright: Playwright):
+    def before_each_after_each(self, page: Page):
         print("before the test runs")
         # Go to the starting url before each test.
-        browser = playwright.chromium.launch()
-        context = browser.new_context(record_video_dir="./videos/")
-        page = context.new_page()
+        # browser = playwright.chromium.launch()
+        # context = browser.new_context(record_video_dir="./videos/")
+        # page = context.new_page()
         page.goto("https://demo.visionect.com/tasks/index.html")
         assert page, "The page did not load correctly."
         self.task_manager_page = TaskManagerPage(get_current_page(page))
         yield
-        context.close()
 
         print("after the test runs")
 
-    def test_01_task_manager_text(self):
+    # @record_screen
+    def test_01_task_manager_text(self, request):
         time_start = time.time()
         found = False
         expect(self.task_manager_page.daily_tip_card.tip_text_elem).to_have_text(
-            Text.STAY_FOCUSED_AND_PRIORITIZE.value, timeout=4000
+            Text.STAY_FOCUSED_AND_PRIORITIZE.value, timeout=1000
         )

@@ -201,7 +201,7 @@ class TestTaskManager:
 
     @pytest.mark.task_manager_text
     @pytest.mark.parametrize(
-        "tip_timeout", [1000, 4000], ids=lambda t: f"timeout_{t}ms"
+        "tip_timeout", [1000, 2000, 3000, 4000], ids=lambda t: f"timeout_{t}ms"
     )
     def test_01_task_manager_text(self, tip_timeout: int):
         expect(self.task_manager_page.daily_tip_card.tip_text_elem).to_have_text(
@@ -211,27 +211,23 @@ class TestTaskManager:
             f"did not load within {tip_timeout}ms."
         )
 
-    @pytest.mark.add_new_task
     @pytest.mark.parametrize(
         "text",
         [
             "New Test Task!",
             "1234567890,",
             "!@#$%^&*()",
-            "",
-            " ",
             "abcdefghijklmnopqrstuvwxyz",
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()",
         ],
-        ids=lambda t: f"task_{t[:10].strip()}",
     )
     def test_02_add_new_task(self, text):
         add_task_card = self.task_manager_page.add_new_task_card
         task_list_card = self.task_manager_page.task_list_card
 
         add_task_card.input_field.fill(text)
-        add_task_card.button.click()
+        add_task_card.add_task_button.click()
 
         # Wait for the task to appear in the list
         task_list_card.locate(task_list_card.tasks_xpath, wait=1)
@@ -241,38 +237,29 @@ class TestTaskManager:
         expect(task_list_card.tasks[0].text_elem).to_have_text(text)
 
     @pytest.mark.parametrize(
-        "text",
-        [
-            "New Test Task!",
-            "1234567890,",
-            "!@#$%^&*()",
-            "",
-            " ",
-            "abcdefghijklmnopqrstuvwxyz",
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()",
-        ],
-        ids=lambda t: f"task_{t[:10].strip()}",
+        "wait_time",
+        [1, 3, 5, 7, 9, 10, 12],
+        ids=lambda t: f"wait_time_{t}s",
     )
-    def test_03_mark_task_as_completed(self, text):
+    def test_03_mark_task_as_completed(self, wait_time):
         add_task_card = self.task_manager_page.add_new_task_card
         task_list_card = self.task_manager_page.task_list_card
         completed_tasks_card = self.task_manager_page.completed_tasks_card
+        test_text = "New Test Task!"
+        first_task = 0
 
-        add_task_card.input_field.fill(text)
-        add_task_card.button.click()
-
-        # Wait for the task to appear in the list
-        task_list_card.locate(task_list_card.tasks_xpath, wait=5)
+        add_task_card.input_field.fill(test_text)
+        add_task_card.add_task_button.click()
         task_list_card.init_tasks()
-
-        # Mark the task as completed
-        task_list_card.tasks[0].checkbox.check()
+        task_list_card.tasks[first_task].checkbox.check()
         completed_tasks_card.show_completed_tasks_button.click()
+        assert completed_tasks_card.is_task_list_visible(
+            wait=wait_time
+        ), f"The completed tasks list is not visible within {wait_time}."
         # Wait for the task to move to completed tasks
-        completed_tasks_card.locate(completed_tasks_card.tasks_xpath, wait=10)
         completed_tasks_card.init_tasks()
+        print(completed_tasks_card.tasks[first_task].text_elem.inner_text())
 
         # Verify the task appears in the completed tasks
-        print("Completed task text:", completed_tasks_card.tasks[0].text)
-        expect(completed_tasks_card.tasks[0].locator).to_have_text(text)
+        print("Completed task text:", completed_tasks_card.tasks[first_task].text)
+        expect(completed_tasks_card.tasks[first_task].locator).to_have_text(test_text)

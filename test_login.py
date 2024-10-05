@@ -123,7 +123,7 @@ class TaskManagerPage(BaseElement):
         self.task_list_card = TaskManagerPage.TaskListCard(
             self.locate(self.card_base_xpath.format(text=Text.TASK_LIST.value))
         )
-        self.completed_tasks_card = TaskManagerPage.CompletedTasks(
+        self.completed_tasks_card = TaskManagerPage.CompletedTasksCard(
             self.locate(self.card_base_xpath.format(text=Text.COMPLETED_TASKS.value))
         )
 
@@ -142,7 +142,7 @@ class TaskManagerPage(BaseElement):
             super().__init__(locator)
             self.input_field_xpath = ".//input"
             self.button_xpath = ".//button"
-            self.button = self.locate(self.button_xpath)
+            self.add_task_button = self.locate(self.button_xpath)
             self.input_field = self.locate(self.input_field_xpath)
 
     class TaskListCard(Card):
@@ -161,7 +161,7 @@ class TaskManagerPage(BaseElement):
         def are_tasks_present(self):
             return bool(self.tasks)
 
-    class CompletedTasks(Card):
+    class CompletedTasksCard(Card):
         def __init__(self, locator: Locator):
             super().__init__(locator)
             self.task_list_xpath = ".//div[@id='completed-tasks']"

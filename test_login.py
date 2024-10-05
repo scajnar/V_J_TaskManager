@@ -214,10 +214,49 @@ class TestTaskManager:
         add_task_card = self.task_manager_page.add_new_task_card
         task_list_card = self.task_manager_page.task_list_card
 
-        add_task_card.input_field.fill("New Test Task!")
+        add_task_card.input_field.fill(text)
         add_task_card.button.click()
-        task_list_card.init_task_list()
-        task_list_card.task_list.initialize_tasks()
-        print(task_list_card.task_list.tasks[0].text)
-        # time.sleep(1)
-        expect(task_list_card.task_list.tasks[0].text_elem).to_have_text(text)
+
+        # Wait for the task to appear in the list
+        task_list_card.locate(task_list_card.tasks_xpath, wait=1)
+        task_list_card.init_tasks()
+
+        print("Task text:", task_list_card.tasks[0].text)
+        expect(task_list_card.tasks[0].text_elem).to_have_text(text)
+
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "New Test Task!",
+            "1234567890,",
+            "!@#$%^&*()",
+            "",
+            " ",
+            "abcdefghijklmnopqrstuvwxyz",
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()",
+        ],
+        ids=lambda t: f"task_{t[:10].strip()}",
+    )
+    def test_03_mark_task_as_completed(self, text):
+        add_task_card = self.task_manager_page.add_new_task_card
+        task_list_card = self.task_manager_page.task_list_card
+        completed_tasks_card = self.task_manager_page.completed_tasks_card
+
+        add_task_card.input_field.fill(text)
+        add_task_card.button.click()
+
+        # Wait for the task to appear in the list
+        task_list_card.locate(task_list_card.tasks_xpath, wait=5)
+        task_list_card.init_tasks()
+
+        # Mark the task as completed
+        task_list_card.tasks[0].checkbox.check()
+        completed_tasks_card.show_completed_tasks_button.click()
+        # Wait for the task to move to completed tasks
+        completed_tasks_card.locate(completed_tasks_card.tasks_xpath, wait=10)
+        completed_tasks_card.init_tasks()
+
+        # Verify the task appears in the completed tasks
+        print("Completed task text:", completed_tasks_card.tasks[0].text)
+        expect(completed_tasks_card.tasks[0].locator).to_have_text(text)

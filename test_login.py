@@ -56,13 +56,13 @@ def get_current_page(page):
     return page.locator("//body")
 
 
-class BaseElement(Locator):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        assert self, "The element was not found."
+class BaseElement:
+    def __init__(self, locator: Locator):
+        self.locator = locator
+        assert self.locator, "The element was not found."
 
     def _locator(self, xpath: str, *args, **kwargs):
-        return self.locator(f"xpath={xpath}", *args, **kwargs)
+        return self.locator.locator(f"xpath={xpath}", *args, **kwargs)
 
     def locate(self, xpath: str, wait: int = 0, *args, **kwargs):
         time_start = time.time()

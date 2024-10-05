@@ -185,6 +185,10 @@ class TaskManagerPage(BaseElement):
                     return self.locate(self.task_text_xpath).inner_text()
 
                 @property
+                def text_elem(self):
+                    return self.locate(self.task_text_xpath)
+
+                @property
                 def is_text_line_through(self):
                     style = self.locate(self.task_text_xpath).get_attribute("style")
                     return "line-through" in style
@@ -217,11 +221,27 @@ class TestTaskManager:
             f"did not load within {tip_timeout}ms."
         )
 
-    def test_02_add_new_task(self):
-        self.task_manager_page.add_new_task_card.input_field.fill("New !!Task")
-        time.sleep(2)
-        self.task_manager_page.add_new_task_card.button.click()
-        time.sleep(2)
-        self.task_manager_page.task_list_card.init_task_list()
-        self.task_manager_page.task_list_card.task_list.initialize_tasks()
-        print(self.task_manager_page.task_list_card.task_list.tasks[0].text)
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "New Test Task!",
+            "1234567890,",
+            "!@#$%^&*()",
+            "",
+            " ",
+            "abcdefghijklmnopqrstuvwxyz",
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()",
+        ],
+    )
+    def test_02_add_new_task(self, text):
+        add_task_card = self.task_manager_page.add_new_task_card
+        task_list_card = self.task_manager_page.task_list_card
+
+        add_task_card.input_field.fill("New Test Task!")
+        add_task_card.button.click()
+        task_list_card.init_task_list()
+        task_list_card.task_list.initialize_tasks()
+        print(task_list_card.task_list.tasks[0].text)
+        # time.sleep(1)
+        expect(task_list_card.task_list.tasks[0].text_elem).to_have_text(text)

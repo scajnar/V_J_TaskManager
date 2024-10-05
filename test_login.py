@@ -48,8 +48,6 @@ class BaseElement:
             target_locator.wait_for(state=state, timeout=wait * 1000)
             if target_locator.count() == 0:
                 raise TimeoutError(
-                    f"Element with xpath: {xpath}\n not found within timeframe {wait}s"
-                )
                     f"Element with xpath: {xpath} not found after waiting {wait}s"
                 )
         except Exception as e:
@@ -91,6 +89,10 @@ class TaskWithCheckboxAndButton(BaseElement):
 class TaskWithTextOnly(BaseElement):
     def __init__(self, locator: Locator):
         super().__init__(locator)
+
+    @property
+    def text_elem(self):
+        return self.locator
 
     @property
     def text(self):

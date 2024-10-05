@@ -164,6 +164,7 @@ class TaskManagerPage(BaseElement):
     class CompletedTasks(Card):
         def __init__(self, locator: Locator):
             super().__init__(locator)
+            self.task_list_xpath = ".//div[@id='completed-tasks']"
             self.tasks_xpath: str = ".//li"
             self.show_completed_tasks_button_xpath = ".//button"
             self.tasks = []
@@ -172,14 +173,20 @@ class TaskManagerPage(BaseElement):
             )
 
         def init_tasks(self) -> list:
-            task_list = self.locate(self.tasks_xpath).all()
-            for task in task_list:
-                self.tasks.append(TaskWithTextOnly(task))
-            return self.tasks
+            if self.is_task_list_visible:
+                task_list = self.locate(self.tasks_xpath).all()
+                for task in task_list:
+                    self.tasks.append(TaskWithTextOnly(task))
+                return self.tasks
+            else:
+                raise Exception("Tasks list must first be visible")
 
         @property
         def are_tasks_present(self):
             return bool(self.tasks)
+
+        def is_task_list_visible(self, wait: int = 0):
+            return self.locate(self.task_list_xpath, wait).is_visible()
 
 
 class TestTaskManager:

@@ -11,31 +11,6 @@ from playwright.sync_api._generated import Locator, Page
 logging.basicConfig(level=logging.INFO)
 
 
-# decorator to calculate duration
-# taken by any function.
-def record_screen(func):
-    # added arguments inside the inner1,
-    # if function takes any arguments,
-    # can be added like this.
-    @wraps(func)
-    def inner1(*args, **kwargs):
-        # storing time before function execution
-        begin = time.time()
-        res = None
-        try:
-            print("in decorator")
-            res = func(*args, **kwargs)
-            print(inspect.stack()[1].function)
-        except Exception as e:
-            print("Error")
-            return res
-        # storing time after function execution
-        end = time.time()
-        print("Total time taken in : ", func.__name__, end - begin)
-
-    return inner1
-
-
 # Defining the text that will be used in the tests to avoid typos.
 class Text(Enum):
     LOADING_YOUR_DAILY_TIP = "Loading your daily tip..."

@@ -40,15 +40,22 @@ class BaseElement:
     def _locator(self, xpath: str, *args, **kwargs):
         return self.locator.locator(f"xpath={xpath}", *args, **kwargs)
 
-    def locate(self, xpath: str, wait: int = 0, *args, **kwargs):
+    def locate(
+        self, xpath: str, wait: int = 0, state: str = "visible", *args, **kwargs
+    ) -> Locator:
         target_locator = self._locator(xpath, *args, **kwargs)
-        if wait:
-            try:
-                target_locator.wait_for(state="attached", timeout=wait * 1000)
-            except Exception:
+        try:
+            target_locator.wait_for(state=state, timeout=wait * 1000)
+            if target_locator.count() == 0:
                 raise TimeoutError(
                     f"Element with xpath: {xpath}\n not found within timeframe {wait}s"
                 )
+                    f"Element with xpath: {xpath} not found after waiting {wait}s"
+                )
+        except Exception as e:
+            raise TimeoutError(
+                f"Element with xpath: {xpath}\n not found within timeframe {wait}s\nError: {e}"
+            )
         return target_locator
 
 

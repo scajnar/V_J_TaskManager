@@ -25,6 +25,7 @@ RUN playwright install chromium
 
 # Copy the test script into the container
 COPY test_login.py .
+COPY pytest.ini .
 
 # Set the entrypoint to run the test script
-ENTRYPOINT ["python", "test_login.py"]
+ENTRYPOINT ["pytest", "test_login.py"]

@@ -1,10 +1,9 @@
 import logging
-import time
 from enum import Enum
 
 import pytest
 from playwright.sync_api import expect, Page
-from playwright.sync_api._generated import Locator
+from playwright.sync_api._generated import Locator, Dialog
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,7 +31,8 @@ class Text(Enum):
 class BaseElement:
     def __init__(self, locator: Locator):
         self.locator = locator
-        assert self.locator, "The element was not found."
+        if not self.locator:
+            raise ValueError("The element was not found.")
 
     def __call__(self):
         return self.locator
@@ -50,9 +50,9 @@ class BaseElement:
                 raise TimeoutError(
                     f"Element with xpath: {xpath} not found after waiting {wait}s"
                 )
-        except Exception as e:
+        except TimeoutError:
             raise TimeoutError(
-                f"Element with xpath: {xpath}\n not found within timeframe {wait}s\nError: {e}"
+                f"Element with xpath: {xpath}\n not found within timeframe {wait}s."
             )
         return target_locator
 
@@ -77,7 +77,7 @@ class TaskWithCheckboxAndButton(BaseElement):
         return self.locate(self.checkbox_xpath)
 
     @property
-    def button(self):
+    def set_priority_button(self):
         return self.locate(self.button_xpath)
 
     @property
@@ -103,7 +103,6 @@ class Card(BaseElement):
     def __init__(self, locator: Locator):
         super().__init__(locator)
 
-    # We'll be able to access all title elements with this property.
     @property
     def title(self):
         return self.locate(".//h2").inner_text()
@@ -152,6 +151,7 @@ class TaskManagerPage(BaseElement):
             self.tasks = []
 
         def init_tasks(self) -> list:
+            self.tasks.clear()
             task_list = self.locate(self.tasks_xpath).all()
             for task in task_list:
                 self.tasks.append(TaskWithCheckboxAndButton(task))
@@ -173,7 +173,7 @@ class TaskManagerPage(BaseElement):
             )
 
         def init_tasks(self) -> list:
-            if self.is_task_list_visible:
+            if self.is_task_list_visible():
                 task_list = self.locate(self.tasks_xpath).all()
                 for task in task_list:
                     self.tasks.append(TaskWithTextOnly(task))
@@ -192,18 +192,15 @@ class TaskManagerPage(BaseElement):
 class TestTaskManager:
     @pytest.fixture(scope="function", autouse=True)
     def before_each_after_each(self, page: Page):
-        print("before the test runs")
         page.goto("https://demo.visionect.com/tasks/index.html")
         assert page, "The page did not load correctly."
         self.task_manager_page = TaskManagerPage(get_current_page(page))
         yield
-        print("after the test runs")
 
-    @pytest.mark.task_manager_text
     @pytest.mark.parametrize(
         "tip_timeout", [1000, 2000, 3000, 4000], ids=lambda t: f"timeout_{t}ms"
     )
-    def test_01_task_manager_text(self, tip_timeout: int):
+    def test_01_check_daily_tip_text_appears(self, tip_timeout: int):
         expect(self.task_manager_page.daily_tip_card.tip_text_elem).to_have_text(
             Text.STAY_FOCUSED_AND_PRIORITIZE.value, timeout=tip_timeout
         ), (
@@ -233,7 +230,6 @@ class TestTaskManager:
         task_list_card.locate(task_list_card.tasks_xpath, wait=1)
         task_list_card.init_tasks()
 
-        print("Task text:", task_list_card.tasks[0].text)
         expect(task_list_card.tasks[0].text_elem).to_have_text(text)
 
     @pytest.mark.parametrize(
@@ -258,8 +254,29 @@ class TestTaskManager:
         ), f"The completed tasks list is not visible within {wait_time}."
         # Wait for the task to move to completed tasks
         completed_tasks_card.init_tasks()
-        print(completed_tasks_card.tasks[first_task].text_elem.inner_text())
-
         # Verify the task appears in the completed tasks
-        print("Completed task text:", completed_tasks_card.tasks[first_task].text)
-        expect(completed_tasks_card.tasks[first_task].locator).to_have_text(test_text)
+        expect(completed_tasks_card.tasks[first_task].locator).to_have_text(
+            test_text
+        ), "The task was not moved to the completed tasks."
+
+    def test_04_check_alert_is_present(self):
+        def handle_dialog(dialog: Dialog):
+            nonlocal alert_message
+            alert_message = dialog.message  # Capture the alert message
+            assert (
+                dialog.type == "alert"
+            ), f"Expected dialog type 'alert', got '{dialog.type}'"
+            dialog.accept()  # Accept the alert to proceed
+
+        self.task_manager_page.locator.page.on("dialog", handle_dialog)
+        alert_message = None
+        add_task_card = self.task_manager_page.add_new_task_card
+        task_list_card = self.task_manager_page.task_list_card
+        test_text = "New Test Task!"
+        first_task = 0
+
+        add_task_card.input_field.fill(test_text)
+        add_task_card.add_task_button.click()
+        task_list_card.init_tasks()
+        task_list_card.tasks[first_task].set_priority_button.click()
+        assert alert_message is not None, "Alert message was not populated."

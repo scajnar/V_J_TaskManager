@@ -1,53 +1,103 @@
-[#](#) QA Engineer Assignment: Login Test with Playwright, Python, and Docker
+# Automated Testing for the Task Manager Web Application
 
-## Objective
-Create an automated test using Playwright and Python to verify the functionality of a "Task Manager" web app. The tests should be performed inside a Docker container (Dockerfile included) and automatically start when the container is run.
+This repository contains automated tests for the "Task Manager" web application using Playwright and Python. The tests verify key functionalities of the app and are designed to run inside a Docker container for consistency and ease of setup.
 
-The app is included in the repo (see tasks.html) or on the URL https://demo.visionect.com/tasks/index.html
+## Table of Contents
 
-## Requirements
+- [Overview](#overview)
+- [Test Cases](#test-cases)
+- [Setup and Running Tests](#setup-and-running-tests)
+- [Assumptions and Limitations](#assumptions-and-limitations)
+- [Potential Improvements](#potential-improvements)
+- [Code Structure](#code-structure)
 
-### 1. Test Cases
-Implement a test case that does the following:
+## Overview
 
-- After the page is loaded, the "Daily Tip" should load within one second (it shows the text "Stay focused and prioritize your most important tasks!")
-- If user adds a new task by entering a task name and clicking on the "Add Task" button, the created task should appear in the "Task List" section
-- If a user finishes a task (clicks on the checkbox besides the task) and then clicks on the "Show Completed Tasks" button, the finished task name should appear blow the "Show Completed Tasks" button within 10 seconds.
+The automated tests are designed to verify the core functionalities of the "Task Manager" web application, ensuring that:
 
-### 2. Technology Stack
-- Playwright
-- Python
-- Docker
+- The **"Daily Tip"** loads within a specified time.
+- New tasks can be added and appear in the **"Task List"**.
+- Tasks can be marked as completed and appear under **"Completed Tasks"**.
+- An alert is displayed when setting a task's priority.
 
-### 3. Implementation Details
-- Add screenshots or video recording of failed tests
-- Implement a simple HTML report generator for test results
-- Use Playwright's Python API to interact with the web page
-- Implement appropriate wait strategies to ensure elements are loaded before interacting with them
-- Use assertions to verify the presence of the error message
-- Implement proper error handling and logging
-- Follow PEP 8 style guidelines for Python code
+The tests are implemented using Playwright for browser automation and pytest for structuring the tests.
 
-### 4. Docker Integration
-- Use the provided Dockerfile and set up the environment necessary to run the test
-- Provide clear instructions on how to build and run the Docker container
+## Test Cases
 
-### 5. Documentation
-- Include a INSTRUCTIONS.md file with:
-    - A brief explanation of the test cases
-    - Instructions for setting up and running the test using Docker
-    - Any assumptions or limitations of the current implementation
-    - Suggestions for potential improvements or extensions to the test suite
+### 1. Verify Daily Tip Loading
 
-## Deliverables
-- Python script(s) containing the Playwright test
-- INSTRUCTIONS.md with documentation
-- Any additional configuration files or dependencies
+- **Objective:** Ensure that the "Daily Tip" loads within specified timeouts.
+- **Description:**
+  - After navigating to the Task Manager page, the test waits for the "Daily Tip" text to appear.
+  - Verifies that the text matches **"Stay focused and prioritize your most important tasks!"** within various timeouts (1s, 2s, 3s, 4s).
 
-## Evaluation Criteria
-- Correctness of the test implementation
-- Code quality and adherence to best practices
-- Effective use of Playwright features
-- Proper integration with Docker
-- Quality and clarity of documentation
-- Handling of edge cases and error scenarios
+### 2. Add New Task
+
+- **Objective:** Verify that adding a new task displays it in the **"Task List"** section.
+- **Description:**
+  - Inputs various task names into the **"Add New Task"** field and clicks the **"Add Task"** button.
+  - Checks if the task appears in the **"Task List"** with the correct text.
+
+### 3. Mark Task as Completed
+
+- **Objective:** Ensure that a completed task appears under **"Completed Tasks"** when requested.
+- **Description:**
+  - Adds a new task and marks it as completed.
+  - Clicks on the **"Show Completed Tasks"** button.
+  - Verifies that the completed task appears in the list within various wait times.
+
+### 4. Check Alert Presence
+
+- **Objective:** Verify that an alert is displayed when setting a task's priority.
+- **Description:**
+  - Adds a new task and clicks the **"Set Priority"** button.
+  - Handles the alert dialog and asserts that the correct alert message is displayed.
+
+## Setup and Running Tests
+
+### Prerequisites
+
+- **Docker:** Ensure Docker is installed on your machine. You can download it from [Docker's official website](https://www.docker.com/get-started).
+
+### Steps
+
+
+1. **Build the Docker Image**
+
+
+```
+docker build -t task-manager-tests .
+Run the Docker Container
+```
+
+
+1. **Run the Docker container to execute the tests**
+
+````
+docker run --rm -it  -v "$(pwd)/html_report:/app/html_report" -v "$(pwd)/test-results:/app/test-results"     task-manager-tests
+````
+  
+Explanation:
+
+--rm: Automatically removes the container after it exits.  
+-it: Runs the container in interactive mode.  
+-v "$(pwd)/reports:/app": Maps the reports directory in your current path to the /app directory in the container, allowing you to access the test reports.
+### View the Test Report
+
+After the tests have completed, an HTML report named report.html will be generated in the reports directory.
+
+Open reports/report.html in a web browser to view the test results.
+
+### Assumptions and Limitations
+- Single Browser Testing: The tests are configured to run using the Chromium browser only.  
+- Limited Error Handling: The current implementation may not handle all edge cases or network failures gracefully.  
+### Potential Improvements
+- Multi-Browser Support: Extend the tests to run on additional browsers like Firefox and WebKit to ensure cross-browser compatibility.
+- Enhanced Error Handling: Implement more robust error handling to manage network timeouts, element not found exceptions, and other runtime errors.
+CI/CD Integration: Integrate the test suite with a continuous integration system like Jenkins or GitHub Actions for automated testing on code changes.
+Parameterized Configurations: Externalize configurations (like URLs, timeouts) to a configuration file for easier maintenance.
+Reporting Enhancements: Incorporate more detailed reporting tools or integrate with dashboards for better visualization over time.
+### Code Structure
+**test_task_manager.py**: The main test script containing all test cases.  
+**Dockerfile**: Contains instructions to set up the Docker image with all dependencies.  
+**reports/**: Directory where test reports are stored after execution.

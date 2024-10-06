@@ -74,7 +74,7 @@ Run the Docker Container
 1. **Run the Docker container to execute the tests**
 
 ````
-docker run --rm -it -v "$(pwd)/reports:/app" -v "$(pwd)/reports:/app" task-manager-tests
+docker run --rm -it  -v "$(pwd)/html_report:/app/html_report" -v "$(pwd)/test-results:/app/test-results"     task-manager-tests
 ````
   
 Explanation:

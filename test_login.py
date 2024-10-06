@@ -4,7 +4,7 @@ from enum import Enum
 
 import pytest
 from playwright.sync_api import expect, Page
-from playwright.sync_api._generated import Locator
+from playwright.sync_api._generated import Locator, Dialog
 
 logging.basicConfig(level=logging.INFO)
 
@@ -77,7 +77,7 @@ class TaskWithCheckboxAndButton(BaseElement):
         return self.locate(self.checkbox_xpath)
 
     @property
-    def button(self):
+    def set_priority_button(self):
         return self.locate(self.button_xpath)
 
     @property
@@ -192,18 +192,16 @@ class TaskManagerPage(BaseElement):
 class TestTaskManager:
     @pytest.fixture(scope="function", autouse=True)
     def before_each_after_each(self, page: Page):
-        print("before the test runs")
         page.goto("https://demo.visionect.com/tasks/index.html")
         assert page, "The page did not load correctly."
         self.task_manager_page = TaskManagerPage(get_current_page(page))
         yield
-        print("after the test runs")
 
     @pytest.mark.daily_tip
     @pytest.mark.parametrize(
         "tip_timeout", [1000, 2000, 3000, 4000], ids=lambda t: f"timeout_{t}ms"
     )
-    def test_01_task_manager_text(self, tip_timeout: int):
+    def test_01_check_daily_tip_text_appears(self, tip_timeout: int):
         expect(self.task_manager_page.daily_tip_card.tip_text_elem).to_have_text(
             Text.STAY_FOCUSED_AND_PRIORITIZE.value, timeout=tip_timeout
         ), (

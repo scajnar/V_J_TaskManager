@@ -199,7 +199,7 @@ class TestTaskManager:
         yield
         print("after the test runs")
 
-    @pytest.mark.task_manager_text
+    @pytest.mark.daily_tip
     @pytest.mark.parametrize(
         "tip_timeout", [1000, 2000, 3000, 4000], ids=lambda t: f"timeout_{t}ms"
     )
@@ -211,6 +211,7 @@ class TestTaskManager:
             f"did not load within {tip_timeout}ms."
         )
 
+    @pytest.mark.add_new_task
     @pytest.mark.parametrize(
         "text",
         [
@@ -236,6 +237,7 @@ class TestTaskManager:
         print("Task text:", task_list_card.tasks[0].text)
         expect(task_list_card.tasks[0].text_elem).to_have_text(text)
 
+    @pytest.mark.completed_tasks
     @pytest.mark.parametrize(
         "wait_time",
         [1, 3, 5, 7, 9, 10, 12],

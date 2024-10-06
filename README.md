@@ -81,12 +81,12 @@ Explanation:
 
 --rm: Automatically removes the container after it exits.  
 -it: Runs the container in interactive mode.  
--v "$(pwd)/reports:/app": Maps the reports directory in your current path to the /app directory in the container, allowing you to access the test reports.
+--v "$(pwd)/html_report:/app/html_report" -v "$(pwd)/test-results:/app/test-results" : Maps the reports directory in your current path to the /app directory in the container, allowing you to access the test reports.
 ### View the Test Report
 
-After the tests have completed, an HTML report named report.html will be generated in the reports directory.
+After the tests have completed, an HTML report named test_report.html will be generated in the html_report/ directory.
 
-Open reports/report.html in a web browser to view the test results.
+Open html_report/test_report.html in a web browser to view the test results.
 
 ### Assumptions and Limitations
 - Single Browser Testing: The tests are configured to run using the Chromium browser only.  

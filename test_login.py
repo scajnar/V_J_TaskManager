@@ -197,7 +197,6 @@ class TestTaskManager:
         self.task_manager_page = TaskManagerPage(get_current_page(page))
         yield
 
-    @pytest.mark.daily_tip
     @pytest.mark.parametrize(
         "tip_timeout", [1000, 2000, 3000, 4000], ids=lambda t: f"timeout_{t}ms"
     )
@@ -209,7 +208,6 @@ class TestTaskManager:
             f"did not load within {tip_timeout}ms."
         )
 
-    @pytest.mark.add_new_task
     @pytest.mark.parametrize(
         "text",
         [
@@ -234,7 +232,6 @@ class TestTaskManager:
 
         expect(task_list_card.tasks[0].text_elem).to_have_text(text)
 
-    @pytest.mark.completed_tasks
     @pytest.mark.parametrize(
         "wait_time",
         [1, 3, 5, 7, 9, 10, 12],
@@ -262,7 +259,6 @@ class TestTaskManager:
             test_text
         ), "The task was not moved to the completed tasks."
 
-    @pytest.mark.alert
     def test_04_check_alert_is_present(self):
         def handle_dialog(dialog: Dialog):
             nonlocal alert_message

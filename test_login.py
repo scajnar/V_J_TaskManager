@@ -1,5 +1,4 @@
 import logging
-import time
 from enum import Enum
 
 import pytest
@@ -32,7 +31,8 @@ class Text(Enum):
 class BaseElement:
     def __init__(self, locator: Locator):
         self.locator = locator
-        assert self.locator, "The element was not found."
+        if not self.locator:
+            raise ValueError("The element was not found.")
 
     def __call__(self):
         return self.locator
@@ -50,9 +50,9 @@ class BaseElement:
                 raise TimeoutError(
                     f"Element with xpath: {xpath} not found after waiting {wait}s"
                 )
-        except Exception as e:
+        except TimeoutError:
             raise TimeoutError(
-                f"Element with xpath: {xpath}\n not found within timeframe {wait}s\nError: {e}"
+                f"Element with xpath: {xpath}\n not found within timeframe {wait}s."
             )
         return target_locator
 
@@ -103,7 +103,6 @@ class Card(BaseElement):
     def __init__(self, locator: Locator):
         super().__init__(locator)
 
-    # We'll be able to access all title elements with this property.
     @property
     def title(self):
         return self.locate(".//h2").inner_text()
@@ -152,6 +151,7 @@ class TaskManagerPage(BaseElement):
             self.tasks = []
 
         def init_tasks(self) -> list:
+            self.tasks.clear()
             task_list = self.locate(self.tasks_xpath).all()
             for task in task_list:
                 self.tasks.append(TaskWithCheckboxAndButton(task))
@@ -173,7 +173,7 @@ class TaskManagerPage(BaseElement):
             )
 
         def init_tasks(self) -> list:
-            if self.is_task_list_visible:
+            if self.is_task_list_visible():
                 task_list = self.locate(self.tasks_xpath).all()
                 for task in task_list:
                     self.tasks.append(TaskWithTextOnly(task))
@@ -232,7 +232,6 @@ class TestTaskManager:
         task_list_card.locate(task_list_card.tasks_xpath, wait=1)
         task_list_card.init_tasks()
 
-        print("Task text:", task_list_card.tasks[0].text)
         expect(task_list_card.tasks[0].text_elem).to_have_text(text)
 
     @pytest.mark.completed_tasks
@@ -258,18 +257,16 @@ class TestTaskManager:
         ), f"The completed tasks list is not visible within {wait_time}."
         # Wait for the task to move to completed tasks
         completed_tasks_card.init_tasks()
-        print(completed_tasks_card.tasks[first_task].text_elem.inner_text())
-
         # Verify the task appears in the completed tasks
-        print("Completed task text:", completed_tasks_card.tasks[first_task].text)
-        expect(completed_tasks_card.tasks[first_task].locator).to_have_text(test_text)
+        expect(completed_tasks_card.tasks[first_task].locator).to_have_text(
+            test_text
+        ), "The task was not moved to the completed tasks."
 
     @pytest.mark.alert
     def test_04_check_alert_is_present(self):
         def handle_dialog(dialog: Dialog):
             nonlocal alert_message
             alert_message = dialog.message  # Capture the alert message
-            print(f"Alert message: {alert_message}")
             assert (
                 dialog.type == "alert"
             ), f"Expected dialog type 'alert', got '{dialog.type}'"

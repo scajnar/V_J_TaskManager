@@ -61,18 +61,11 @@ The tests are implemented using Playwright for browser automation and pytest for
 
 ### Steps
 
-1. **Clone the Repository**
-
- ```
- git clone https://github.com/yourusername/task-manager-tests.git
- cd task-manager-tests
- ```
 
 1. **Build the Docker Image**
 
 
 ```
-Copy code
 docker build -t task-manager-tests .
 Run the Docker Container
 ```
@@ -81,8 +74,7 @@ Run the Docker Container
 1. **Run the Docker container to execute the tests**
 
 ````
-Copy code
-docker run --rm -it -v "$(pwd)/reports:/app" task-manager-tests
+docker run --rm -it -v "$(pwd)/reports:/app" -v "$(pwd)/reports:/app" task-manager-tests
 ````
   
 Explanation:

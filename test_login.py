@@ -263,3 +263,27 @@ class TestTaskManager:
         # Verify the task appears in the completed tasks
         print("Completed task text:", completed_tasks_card.tasks[first_task].text)
         expect(completed_tasks_card.tasks[first_task].locator).to_have_text(test_text)
+
+    @pytest.mark.alert
+    def test_04_check_alert_is_present(self):
+        def handle_dialog(dialog: Dialog):
+            nonlocal alert_message
+            alert_message = dialog.message  # Capture the alert message
+            print(f"Alert message: {alert_message}")
+            assert (
+                dialog.type == "alert"
+            ), f"Expected dialog type 'alert', got '{dialog.type}'"
+            dialog.accept()  # Accept the alert to proceed
+
+        self.task_manager_page.locator.page.on("dialog", handle_dialog)
+        alert_message = None
+        add_task_card = self.task_manager_page.add_new_task_card
+        task_list_card = self.task_manager_page.task_list_card
+        test_text = "New Test Task!"
+        first_task = 0
+
+        add_task_card.input_field.fill(test_text)
+        add_task_card.add_task_button.click()
+        task_list_card.init_tasks()
+        task_list_card.tasks[first_task].set_priority_button.click()
+        assert alert_message is not None, "Alert message was not populated."
